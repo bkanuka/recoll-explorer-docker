@@ -2,6 +2,7 @@ FROM ubuntu:xenial
 
 ENV NODE_VERSION='8'
 ENV DEBIAN_FRONTEND=noninteractive
+ENV RECOLL_CONFDIR=/etc/recoll
 
 RUN apt update && apt dist-upgrade -y
 RUN apt install -y python-software-properties software-properties-common
@@ -18,12 +19,13 @@ RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
     && npm i -g npm gulp bower pm2
 
 # Install explorer
-RUN git clone https://github.com/soyuka/explorer.git /opt/explorer \
+RUN git clone https://github.com/bkanuka/explorer.git /opt/explorer \
     && cd /opt/explorer \
     && npm install \
     && bower install --allow-root \
     && gulp
 
+# Explorer Config
 RUN mkdir -p /root/.config/explorer \
     && mkdir -p /root/.config/explorer/certs \
     && mkdir -p /root/.config/explorer/data
@@ -32,5 +34,11 @@ COPY users /root/.config/explorer/data
 COPY cert.pem /root/.config/explorer/certs
 COPY key.pem /root/.config/explorer/certs
 
-WORKDIR  /opt/explorer
-CMD ["pm2-runtime", "index.js"]
+# Recoll Config
+RUN mkdir -p ${RECOLL_CONFDIR}
+COPY recoll.conf ${RECOLL_CONFDIR}/recoll.conf
+
+COPY run.sh /opt/explorer
+COPY recollsearch /usr/bin
+WORKDIR /opt/explorer
+CMD ["/bin/bash", "/opt/explorer/run.sh"]

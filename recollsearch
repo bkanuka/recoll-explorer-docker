@@ -1,0 +1,18 @@
+#!/usr/bin/python
+# coding: utf-8
+
+import sys, os
+from recoll import recoll
+import urllib, urlparse
+
+q = " ".join(sys.argv[1:-1]) + ' dir:"' + sys.argv[-1] + '"'
+
+db = recoll.connect()
+query = db.query()
+nres = query.execute(q)
+if nres:
+    for doc in query:
+        doc_url = doc.getbinurl()
+        urllib.url2pathname(urlparse.urlparse(doc_url).path)
+        doc_path = urllib.url2pathname(urlparse.urlparse(doc_url).path)
+        print doc_path
